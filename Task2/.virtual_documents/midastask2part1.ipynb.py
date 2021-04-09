@@ -11,7 +11,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.preprocessing import image
 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Flatten
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Lambda
 from tensorflow.keras.layers import Conv2D, MaxPooling2D
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.optimizers import Adam
@@ -446,6 +446,82 @@ plt.show()
 
 plt.plot(history3.history['loss'])
 plt.plot(history3.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['training', 'validation'], loc='best')
+plt.show()
+
+
+model7 = Sequential()
+
+# 1st Convolution Layer
+model7.add(Conv2D(6, input_shape=(*IMAGE_SIZE, 1),
+                  kernel_size=(5,5), padding='same', activation=mish))
+model7.add(BatchNormalization())
+model7.add(MaxPooling2D(pool_size=(2,2), strides=2))
+
+# 2nd Convolution Layer
+model7.add(Conv2D(16, kernel_size=(5,5), activation=mish))
+model7.add(BatchNormalization())
+model7.add(MaxPooling2D(pool_size=(2,2), strides=2))
+
+# Passing to a Fully Connected Layer
+model7.add(Flatten())
+
+# 1st Fully Connected Layer
+model7.add(Dense(256, activation=mish))
+model7.add(BatchNormalization())
+model7.add(Dropout(0.4))
+
+# 2nd Fully Connected Layer
+model7.add(Dense(128, activation=mish))
+model7.add(BatchNormalization())
+model7.add(Dropout(0.4))
+
+# Output Layer
+# Increasing the softmax temperature
+temp = 5
+model7.add(Lambda(lambda x: x / temp))
+model7.add(Dense(62, activation='softmax'))
+
+
+model7.summary()
+
+
+model7.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+
+
+checkpoint_filepath7 = 'exp7/checkpoint'
+model_checkpoint_callback7 = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_filepath7,
+    save_weights_only=True,
+    monitor='val_loss',
+    mode='min',
+    save_best_only=True)
+
+
+history7 = model7.fit(
+    train_generator1,
+    epochs=EPOCHS,
+    validation_data=validation_generator1,
+    steps_per_epoch = train_generator1.samples // BATCH_SIZE,
+    validation_steps = validation_generator1.samples // BATCH_SIZE,
+    callbacks=[model_checkpoint_callback7, early_stopping_callback]
+)
+
+
+plt.plot(history7.history['accuracy'])
+plt.plot(history7.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['training', 'validation'], loc='best')
+plt.show()
+
+
+plt.plot(history7.history['loss'])
+plt.plot(history7.history['val_loss'])
 plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
