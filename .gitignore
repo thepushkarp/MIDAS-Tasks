@@ -165,8 +165,8 @@ Thumbs.db
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks
 
 # Image files
-Task2/mnistTask3
-Task2/trainPart1
+**/**/mnistTask3
+**/**/trainPart1
 
 # Kite Tutorials
 **/kite_tutorial.ipynb.py
